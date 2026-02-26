@@ -1,75 +1,99 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
+import customtkinter as ctk
 import qrcode
 from PIL import Image, ImageTk
-
-# මේvariable එකට generate කරපු QR එක store වෙනව
-generated_qr = None
+from tkinter import filedialog, messagebox
 
 
-# this function for generate the QR code
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("green")
+
+app = ctk.CTk()
+app.geometry("500x600")
+app.title("QR Code Generator")
+app.configure(fg_color="#EDEDED")
+
+qr_image = None
+
 def generate_qr():
-    global generated_qr
+    global qr_image
+    data = entry.get()
+    if data:
+        qr = qrcode.make(data)
+        qr = qr.resize((250, 250))
+        qr_image = ImageTk.PhotoImage(qr)
+        qr_label.configure(image=qr_image)
 
-    text = entry.get()   #get the link
-
-    if text == "":
-        messagebox.showerror("Error", "Please enter some text")
-        return
-
-    # Create QR image
-    generated_qr = qrcode.make(text)
-
-    # Resize image for display
-    resized_image = generated_qr.resize((200, 200))
-
-    # Convert image to Tkinter format
-    tk_image = ImageTk.PhotoImage(resized_image)
-
-    # Show image in label
-    qr_label.config(image=tk_image)
-    qr_label.image = tk_image
-
-
-# Function to download QR image we have generated
 def download_qr():
-    if generated_qr is None:
-        messagebox.showerror("Error", "Please generate QR first")
+    data = entry.get()
+
+    if not data:
+        messagebox.showerror("Error", "Please enter text or URL first.")
         return
 
     # Open save dialog
     file_path = filedialog.asksaveasfilename(
-        defaultextension=".png"
+        defaultextension=".png",
+        filetypes=[("PNG files", "*.png")],
+        title="Save QR Code"
     )
 
     if file_path:
-        generated_qr.save(file_path)
-        messagebox.showinfo("Success", "QR Code saved successfully")
+        qr = qrcode.make(data)
+        qr.save(file_path)
+        messagebox.showinfo("Success", "QR Code downloaded successfully!")
 
 
-# --------This is the Main Window --------
-root = tk.Tk()
-root.title("QR Code Generator")
-root.geometry("400x500")
+# ===== Card Frame =====
+card = ctk.CTkFrame(app,
+                    width=400,
+                    height=550,
+                    corner_radius=25,
+                    fg_color="#F4F4F4")
 
-# Title
-title_label = tk.Label(root, text="QR Code Generator", font=("Arial", 18))
-title_label.pack(pady=20)
+card.pack(pady=40)
+card.pack_propagate(False)
 
-# Input box
-entry = tk.Entry(root, width=30, font=("Arial", 14))
-entry.pack(pady=10)
+# ===== Title =====
+title = ctk.CTkLabel(card,
+                     text="QR Code Generator",
+                     font=("Segoe UI", 24, "bold"),
+                     text_color="#111111")
+title.pack(pady=25)
 
-# Generate button
-generate_button = tk.Button(root, text="Generate QR", command=generate_qr)
-generate_button.pack(pady=10)
+# ===== Entry =====
+entry = ctk.CTkEntry(card,
+                     width=320,
+                     height=40,
+                     corner_radius=15,
+                     placeholder_text="Enter URL here...")
+entry.pack(pady=15)
 
-# Download button
-download_button = tk.Button(root, text="Download QR", command=download_qr)
-download_button.pack(pady=10)
+# ===== Generate Button =====
+generate_btn = ctk.CTkButton(card,
+                             text="Generate QR",
+                             width=220,
+                             height=40,
+                             corner_radius=20,
+                             fg_color="#6FCF97",
+                             hover_color="#57B884",
+                             text_color="black",
+                             command=generate_qr)
+generate_btn.pack(pady=10)
 
-# Label to display QR image
-qr_label = tk.Label(root)
-qr_label.pack(pady=20)
+# ===== Download Button =====
+download_btn = ctk.CTkButton(card,
+                             text="Download QR",
+                             width=220,
+                             height=40,
+                             corner_radius=20,
+                             fg_color="#6FCF97",
+                             hover_color="#57B884",
+                             text_color="black",
+                             command=download_qr)
+download_btn.pack(pady=5)
 
-root.mainloop()
+# ===== QR Image Display =====
+qr_label = ctk.CTkLabel(card, text="")
+qr_label.pack(pady=25)
+
+app.mainloop()
